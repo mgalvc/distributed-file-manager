@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>File Manager</title>
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.1/css/bulma.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+	<div class="section">
+		<div class="container">
+			<div class="columns">
+				<div class="column is-10 is-offset-2">
+					<div class="columns">
+						<div class="column">
+							<div class="control">
+								<a class="button is-info" href="{{ url_for('index') }}">
+									<span class="icon">
+										<i class="fa fa-home"></i>
+									</span>		
+								</a>
+							</div>
+						</div>
+
+						<div class="column is-8">
+							<form action="{{ url_for('search') }}" method=post>
+								<div class="field has-addons">
+									<div class="control is-expanded">
+								    	<input class="input" type="text" name="file_name" placeholder="Find a file">
+								  	</div>
+								  	<div class="control">
+								    	<button class="button is-info">
+								      	Search
+								    	</button>
+								  	</div>
+								</div>
+							</form>
+						</div>
+
+						<div class="column is-4">
+							<div class="control">
+						    	<a class="button is-primary">
+						      	Share a file
+						    	</a>
+						  	</div>	
+						</div>
+					</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="columns is-multiline">
+				{% for file in files %}
+					<div class="column is-one-third">
+						<div class="card">
+							<header class="card-header">
+								<p class="card-header-title">
+									{{ file['name'] }}
+								</p>
+							</header>
+							<div class="card-content">
+								<div class="content">
+									Shared by {{ file['from'] }} <br>
+									In {{ file['date'] }}
+								</div>
+							</div>
+							<footer class="card-footer">
+								<a href="#" class="card-footer-item">Download</a>
+								<a href="#" class="card-footer-item">Delete</a>
+							</footer>
+						</div>	
+					</div>
+				{% endfor %}
+			</div>	
+		</div>
+	</div>
+</body>
+</html>

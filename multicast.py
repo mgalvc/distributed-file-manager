@@ -7,7 +7,7 @@ from twisted.internet import reactor
 
 multicast_group = ('224.3.29.71', 10000)
 is_supernode = False
-
+files_map = None
 
 class Sender(object):
 	def __init__(self):
@@ -19,16 +19,17 @@ class Sender(object):
 
 	def send(self, message):
 		print('sending...')
-		self.sock.sendto(message, multicast_group)
+		self.sock.sendto(message.encode(), multicast_group)
 
 		print('waiting...')
 		while True:
 			try:
 				response, server = self.sock.recvfrom(1024)
 			except socket.timeout:
-				return 'eita barril, n tem ngm'
+				is_supernode =  True
+				files_map = {}
+				return 'mito, agora tu eh o supernode'
 			else:
-				print('sender received {} from {}'.format(response, server))
 				return response
 
 
@@ -40,9 +41,14 @@ class Receiver(DatagramProtocol):
 		print('waiting for messages...')
 
 	def datagramReceived(self, datagram, address):
-		
-		print('receiver received {} from {}'.format(datagram, address))
-		self.transport.write(b'ack', address)
+		request = json.loads(datagram.decode())
+
+		if request.get('message') == 'seek_supernode' and is_supernode:
+			response = {
+				'message': 'to aqui misera'
+			}
+			
+			self.transport.write(json.dumps(response).encode(), address)
 
 def run_receiver():
 	reactor.listenMulticast(multicast_group[1], Receiver(), listenMultiple=True)
