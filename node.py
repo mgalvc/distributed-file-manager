@@ -132,9 +132,9 @@ class FileManager(object):
 			if data.get('action') == 'search':
 				response = self.search(data.get('name'))
 
-			if data.get('action') == 'get_files_list'
+			if data.get('action') == 'get_files_list':
 				response = self.files_map
-				
+
 			sock.sendto(json.dumps(response).encode(), address)
 	
 
