@@ -115,6 +115,8 @@ class FileManager(object):
 			data, address = sock.recvfrom(1024)
 			data = json.loads(data.decode())
 
+			print(data)
+
 			if data.get('action') == 'search':
 				response = self.search(data.get('name'))
 			sock.sendto(json.dumps(response).encode(), address)
