@@ -6,6 +6,7 @@ import json
 import struct
 import socket
 import time
+import ast
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 
@@ -44,7 +45,7 @@ class FileManager(object):
 		multicast_thread = threading.Thread(target=self.listen_multicast)
 		multicast_thread.start()
 
-		self.files_map = []
+		self.files_map = set()
 
 		# self.init_map()
 
@@ -69,11 +70,12 @@ class FileManager(object):
 		}
 
 		response = self.send_multicast(json.dumps(request))
-		files = json.loads(response)
+		
+		if response:
+			files = ast.literal_eval(response)
+			self.files_map.update(files)
 
-		for file in files:
-			self.files_map.update(file)
-
+		print(self.files_map)
 		return self.files_map
 
 	def search(self, file_name):
