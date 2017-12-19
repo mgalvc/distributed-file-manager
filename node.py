@@ -13,7 +13,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 files_path = path + '/files'
 downloads_path = path + '/downloads'
 
-listener_address = ('', 10000)
+listener_address = ('192.168.15.9', 8000)
 
 file_manager = None
 multicast_group = ('224.3.29.71', 10000)
@@ -101,7 +101,7 @@ class FileManager(object):
 
 	def listen_multicast(self):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		sock.bind(listener_address)
+		sock.bind(multicast_group)
 
 		group = socket.inet_aton(multicast_group[0])
 		mreq = struct.pack('4sL', group, socket.INADDR_ANY)
