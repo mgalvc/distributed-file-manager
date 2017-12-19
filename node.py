@@ -13,7 +13,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 files_path = path + '/files'
 downloads_path = path + '/downloads'
 
-listener_address = ('192.168.15.9', 8000)
+my_address = '192.168.15.9'
 
 file_manager = None
 multicast_group = ('224.3.29.71', 10000)
@@ -64,6 +64,16 @@ class FileManager(object):
 			return f.read()
 
 	def list_files(self):
+		request = {
+				'action': 'get_files_list'
+		}
+
+		response = self.send_multicast(json.dumps(request))
+		files = json.loads(response)
+
+		for file in files:
+			self.files_map.update(file)
+
 		return self.files_map
 
 	def search(self, file_name):
@@ -93,11 +103,12 @@ class FileManager(object):
 		while True:
 			try:
 				response, server = self.sock.recvfrom(1024)
+				print('{} said {}'.format(server, response))
 			except socket.timeout:
 				print('timed out')
 				break
 			else:
-				return response
+				return response.decode()
 
 	def listen_multicast(self):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -115,10 +126,15 @@ class FileManager(object):
 			data, address = sock.recvfrom(1024)
 			data = json.loads(data.decode())
 
-			print(data)
+			if address[0] == my_address:
+				continue
 
 			if data.get('action') == 'search':
 				response = self.search(data.get('name'))
+
+			if data.get('action') == 'get_files_list'
+				response = self.files_map
+				
 			sock.sendto(json.dumps(response).encode(), address)
 	
 

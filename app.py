@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import webbrowser
+import ast
 from datetime import date
 
 app = Flask(__name__)
@@ -26,6 +27,7 @@ def search():
 			"action": "search",
 			"name": request.form['file_name']
 		}))
+		files = ast.literal_eval(files)
 
 	if files == None:
 		return redirect(url_for('index', message={'fail': 'not found'}))
