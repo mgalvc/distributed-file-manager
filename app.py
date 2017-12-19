@@ -47,7 +47,7 @@ def share():
 	file = request.files['file']
 	print(type(file))
 	file.save(os.path.join(node.files_path, '{}(-){}(-){}'.format(username, date.today(), file.filename)))
-	file_manager.update_map(file.filename, username, date.today())
+	file_manager.update_map(file.filename, username, str(date.today()))
 	return redirect(url_for('index'))
 
 if __name__ == '__main__':
