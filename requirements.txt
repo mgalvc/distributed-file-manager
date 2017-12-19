@@ -1,0 +1,16 @@
+attrs==17.3.0
+Automat==0.6.0
+click==6.7
+constantly==15.1.0
+Flask==0.12.2
+hyperlink==17.3.1
+incremental==17.5.0
+itsdangerous==0.24
+Jinja2==2.10
+MarkupSafe==1.0
+Pyro4==4.63
+serpent==1.23
+six==1.11.0
+Twisted==17.9.0
+Werkzeug==0.13
+zope.interface==4.4.3
