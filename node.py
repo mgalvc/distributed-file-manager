@@ -13,7 +13,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 files_path = path + '/files'
 downloads_path = path + '/downloads'
 
-listener_address = ('', 10000)
+listener_address = ('192.168.15.9', 10000)
 
 file_manager = None
 multicast_group = ('224.3.29.71', 10000)
@@ -130,6 +130,8 @@ class FileManager(object):
 		while True:
 			data, address = sock.recvfrom(1024)
 			data = json.loads(data.decode())
+
+			print(data)
 
 			if data.get('action') == 'search':
 				response = self.search(data.get('name'))
