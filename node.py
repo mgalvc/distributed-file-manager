@@ -60,7 +60,8 @@ class FileManager(object):
 			})
 
 	def get(self, name, user, date):
-		with open('{}/{}(-){}(-){}'.format(files_path, user, date, name)) as f:
+		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
+		with open(file_path) as f:
 			return f.read()
 
 	def list_files(self):
@@ -72,6 +73,21 @@ class FileManager(object):
 		for file in self.files_map:
 			if file['name'] == file_name:
 				response.append(file)
+
+		if len(response) == 0:
+			message = {
+				'action': 'who_has',
+				'filename': file_name
+			}
+			self.send_multicast(json.dumps(message))
+
+			while True:
+				try:
+					answer, address = recvfrom(1024)
+					print('{} sent {}'.format(address, answer))
+					break
+				except:
+					print('timed out, no one has file')
 
 		return response
 
