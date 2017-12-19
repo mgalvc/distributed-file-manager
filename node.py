@@ -1,6 +1,5 @@
 import Pyro4
 import os
-import multicast
 import sys
 import threading
 import json
@@ -12,8 +11,16 @@ from twisted.internet import reactor
 
 path = os.path.dirname(os.path.abspath(__file__))
 files_path = path + '/files'
+downloads_path = path + '/downloads'
+
+listener_address = ('', 10000)
 
 file_manager = None
+multicast_group = ('224.3.29.71', 10000)
+
+def run_multicast():
+	reactor.listenMulticast(10000, MulticastListener(), listenMultiple=True)
+	reactor.run(installSignalHandlers=False)
 
 
 class FileManager(object):
@@ -23,7 +30,7 @@ class FileManager(object):
 		print('running ' + str(file_manager))
 
 		pyro_thread = threading.Thread(target=self.start_server)
-		pyro_thread.start()	
+		pyro_thread.start()
 		
 		self.multicast_group = ('224.3.29.71', 10000)
 
@@ -33,28 +40,28 @@ class FileManager(object):
 		ttl = struct.pack('b', 3)
 		self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
 
-		self.files_map = [
-			{
-				'name': 'relatorio_2017.pdf',
-				'from': 'Matheus',
-				'date': '17/12/2017'
-			},
-			{
-				'name': 'lista_confra.pdf',
-				'from': 'Juliana',
-				'date': '02/12/2017'
-			},
-			{
-				'name': 'projetos_2018.pptx',
-				'from': 'Michelle',
-				'date': '10/12/2017'
-			},
-			{
-				'name': 'financeiro_12_2017.xlsx',
-				'from': 'Marcos',
-				'date': '15/12/2017'
-			}
-		]
+		# reactor.listenMulticast(10000, MulticastListener(), listenMultiple=True)
+		multicast_thread = threading.Thread(target=self.listen_multicast)
+		multicast_thread.start()
+
+		self.files_map = []
+
+		# self.init_map()
+
+	def init_map(self):
+		files = os.listdir(files_path)
+		for file in files:
+			user, date, filename = file.split('(-)')
+			self.files_map.append({
+				"name": filename,
+				"from": user,
+				"date": date,
+				"path": files_path
+			})
+
+	def get(self, name, user, date):
+		with open('{}/{}(-){}(-){}'.format(files_path, user, date, name)) as f:
+			return f.read()
 
 	def list_files(self):
 		return self.files_map
@@ -66,13 +73,15 @@ class FileManager(object):
 			if file['name'] == file_name:
 				response.append(file)
 
-		if len(response) == 0:
-			response = self.send_multicast(json.dumps({
-				'action': 'search',
-				'name': file_name
-			}))
-
 		return response
+
+	def update_map(self, file_name, user, date):
+		self.files_map.append({
+			"name": file_name,
+			"from": user,
+			"date": date,
+			"path": files_path
+		})
 
 	def start_server(self):
 		Pyro4.Daemon.serveSimple({ RemoteFileManager: "remote.filemanager" },
@@ -89,7 +98,36 @@ class FileManager(object):
 				break
 			else:
 				return response
-		
+
+	def listen_multicast(self):
+		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		sock.bind(listener_address)
+
+		group = socket.inet_aton(multicast_group[0])
+		mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+		sock.setsockopt(
+		    socket.IPPROTO_IP,
+		    socket.IP_ADD_MEMBERSHIP,
+		    mreq)
+
+		print('listening...')
+		while True:
+			data, address = sock.recvfrom(1024)
+			data = json.loads(data.decode())
+
+			if data.get('action') == 'search':
+				response = self.search(data.get('name'))
+			sock.sendto(json.dumps(response).encode(), address)
+	
+
+class MulticastListener(DatagramProtocol):
+	def startProtocol(self):
+		self.transport.setTTL(3)
+		self.transport.joinGroup(multicast_group[0])
+
+	def datagramReceiver(self, datagram, address):
+		print(datagram)
+		self.transport.write(b'ack', address)
 
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
