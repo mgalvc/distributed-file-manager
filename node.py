@@ -73,7 +73,6 @@ class FileManager(object):
 				'user': user
 			}
 
-
 			nameserver_addr = self.send_multicast(json.dumps(request))
 			nameserver_addr = nameserver_addr.replace("\"", "")
 			print(nameserver_addr)
@@ -163,9 +162,7 @@ class FileManager(object):
 				response = self.files_map
 
 			if data.get('action') == 'nameserver' and data.get('user') == self.username:
-				response = {
-					'nameserver_addr': my_address
-				}
+				response = my_address
 
 			sock.sendto(json.dumps(response).encode(), address)
 	
@@ -182,7 +179,7 @@ class MulticastListener(DatagramProtocol):
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
 class RemoteFileManager(object):
-	def hello(self, name, user, date):
+	def hello(self):
 		return 'hi there'
 
 	def get(self, name, user, date):
