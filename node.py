@@ -74,10 +74,14 @@ class FileManager(object):
 		if response:
 			files = ast.literal_eval(response)
 			self.files_map.extend(files)
+			self.remove_file_duplicated()
 
 
 		print(self.files_map)
 		return self.files_map
+
+	def remove_file_duplicated(self):
+		self.files_map = list(map(dict, set(tuple(sorted(d.items())) for d in self.files_map)))
 
 	def search(self, file_name):
 		response = []
@@ -89,7 +93,7 @@ class FileManager(object):
 		return response
 
 	def update_map(self, file_name, user, date):
-		self.files_map.update({
+		self.files_map.append({
 			"name": file_name,
 			"from": user,
 			"date": date,
@@ -98,7 +102,7 @@ class FileManager(object):
 
 	def start_server(self):
 		Pyro4.Daemon.serveSimple({ RemoteFileManager: "remote.filemanager" },
-			ns=True, host='192.168.15.9')
+			ns=True, host=my_address)
 
 	def send_multicast(self, message):
 		self.sock.sendto(message.encode(), self.multicast_group)
