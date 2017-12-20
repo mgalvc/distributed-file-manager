@@ -183,5 +183,8 @@ class RemoteFileManager(object):
 		return 'hi there'
 
 	def get(self, name, user, date):
-		return file_manager.get(name, user, date)
+		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
+
+		with open(file_path) as f:
+			return f.read()
 	
