@@ -45,7 +45,7 @@ class FileManager(object):
 		multicast_thread = threading.Thread(target=self.listen_multicast)
 		multicast_thread.start()
 
-		self.files_map = set()
+		self.files_map = []
 
 		# self.init_map()
 
@@ -72,10 +72,9 @@ class FileManager(object):
 		response = self.send_multicast(json.dumps(request))
 		
 		if response:
-			files = json.loads(response).get('files')
-			if len(files) > 0:
-				files = ast.literal_eval()
-				self.files_map.update(files)
+			files = ast.literal_eval(response)
+			self.files_map.extend(files)
+
 
 		print(self.files_map)
 		return self.files_map
@@ -90,7 +89,7 @@ class FileManager(object):
 		return response
 
 	def update_map(self, file_name, user, date):
-		self.files_map.append({
+		self.files_map.update({
 			"name": file_name,
 			"from": user,
 			"date": date,
@@ -137,9 +136,7 @@ class FileManager(object):
 				response = self.search(data.get('name'))
 
 			if data.get('action') == 'get_files_list':
-				response = {
-					'files': list(self.files_map)
-				}
+				response = self.files_map
 
 			sock.sendto(json.dumps(response).encode(), address)
 	
