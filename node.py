@@ -72,8 +72,10 @@ class FileManager(object):
 		response = self.send_multicast(json.dumps(request))
 		
 		if response:
-			files = ast.literal_eval(json.loads(response).get('files'))
-			self.files_map.update(files)
+			files = json.loads(response).get('files')
+			if len(files) > 0:
+				files = ast.literal_eval()
+				self.files_map.update(files)
 
 		print(self.files_map)
 		return self.files_map
@@ -136,7 +138,7 @@ class FileManager(object):
 
 			if data.get('action') == 'get_files_list':
 				response = {
-					'files': self.files_map
+					'files': list(self.files_map)
 				}
 
 			sock.sendto(json.dumps(response).encode(), address)
