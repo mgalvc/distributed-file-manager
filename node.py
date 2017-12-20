@@ -73,10 +73,15 @@ class FileManager(object):
 				'user': user
 			}
 
-			nameserver = self.send_multicast(json.dumps(request))
+
+			nameserver_addr = self.send_multicast(json.dumps(request))
+			nameserver_addr = nameserver_addr.replace("\"", "")
+			print(nameserver_addr)
 			
-			remotemanager = Pyro4.Proxy('PYRO:{}@{}:8888'.format(user, nameserver))
-			print(remotemanager.hello())
+			nameserver = Pyro4.locateNS(host=nameserver_addr, port=9090)
+			uri = nameserver.lookup(user)
+			remotemanager = Pyro4.Proxy(uri)
+			return remotemanager.get(name, user, date)
 
 	def list_files(self):
 		request = {
@@ -151,13 +156,16 @@ class FileManager(object):
 				continue
 
 			if data.get('action') == 'search':
+				print(data)
 				response = self.search(data.get('name'))
 
 			if data.get('action') == 'get_files_list':
 				response = self.files_map
 
 			if data.get('action') == 'nameserver' and data.get('user') == self.username:
-				response = my_address
+				response = {
+					'nameserver_addr': my_address
+				}
 
 			sock.sendto(json.dumps(response).encode(), address)
 	
@@ -174,17 +182,9 @@ class MulticastListener(DatagramProtocol):
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
 class RemoteFileManager(object):
-	def hello(self):
+	def hello(self, name, user, date):
 		return 'hi there'
 
-	def list_files(self):
-		return os.listdir(files_path)
-
-	def save_file(self, file_name):
-		open(files_path + '/' + file_name, 'w')
-		print("appended {} to files".format(file_name))
-
-	def remove_file(self, file_name):
-		os.remove(files_path + '/' + file_name)
-		print("remove {} from files".format(file_name))
+	def get(self, name, user, date):
+		return file_manager.get(name, user, date)
 	
