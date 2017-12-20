@@ -18,6 +18,11 @@ def index(message=None):
 	files = file_manager.list_files()
 	return render_template('/index.html', files=files, message=message)
 
+@app.route('/remove', methods=['GET'])
+def remove():
+	file_manager.remove(request.args.get('name'), request.args.get('from'), request.args.get('date'))
+	return redirect(url_for('index'))
+
 @app.route('/search', methods=['POST'])
 def search():
 	files = file_manager.search(request.form['file_name'])

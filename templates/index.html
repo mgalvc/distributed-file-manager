@@ -84,7 +84,7 @@
 							</div>
 							<footer class="card-footer">
 								<a href="{{ url_for('download', name=file['name'], from=file['from'], date=file['date']) }}" class="card-footer-item">Download</a>
-								<a href="#" class="card-footer-item">Delete</a>
+								<a href="{{ url_for('remove', name=file['name'], from=file['from'], date=file['date']) }}" class="card-footer-item">Delete</a>
 							</footer>
 						</div>	
 					</div>

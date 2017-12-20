@@ -82,9 +82,42 @@ class FileManager(object):
 			remotemanager = Pyro4.Proxy(uri)
 			return remotemanager.get(name, user, date)
 
+	def remove(self, name, user, date):
+		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)		
+		
+		if user == self.username:
+			print('its mine')
+			os.remove(file_path)
+
+			to_remove = {
+				'name': name,
+				'from': user,
+				'date': date,
+				'path': files_path
+			}
+
+			self.files_map.remove(to_remove)
+		else:
+			request = {
+				'action': 'nameserver',
+				'user': user
+			}
+
+			nameserver_addr = self.send_multicast(json.dumps(request))
+			nameserver_addr = nameserver_addr.replace("\"", "")
+			print(nameserver_addr)
+			
+			nameserver = Pyro4.locateNS(host=nameserver_addr, port=9090)
+			uri = nameserver.lookup(user)
+			remotemanager = Pyro4.Proxy(uri)
+			remotemanager.remove(name, user, data)
+
+		return 'success'	
+
+
 	def list_files(self):
 		request = {
-				'action': 'get_files_list'
+			'action': 'get_files_list'
 		}
 
 		response = self.send_multicast(json.dumps(request))
@@ -92,13 +125,13 @@ class FileManager(object):
 		if response:
 			files = ast.literal_eval(response)
 			self.files_map.extend(files)
-			self.remove_file_duplicated()
+			self.clean_files_map()
 
 
 		print(self.files_map)
 		return self.files_map
 
-	def remove_file_duplicated(self):
+	def clean_files_map(self):
 		self.files_map = list(map(dict, set(tuple(sorted(d.items())) for d in self.files_map)))
 
 	def search(self, file_name):
@@ -179,12 +212,14 @@ class MulticastListener(DatagramProtocol):
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
 class RemoteFileManager(object):
-	def hello(self):
-		return 'hi there'
-
 	def get(self, name, user, date):
 		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
 
 		with open(file_path) as f:
 			return f.read()
+
+	def remove(self, name, user, date):
+		file_manager.remove(name, user, date)
+		# file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
+		# os.remove(file_path)		
 	
