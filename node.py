@@ -27,6 +27,7 @@ def run_multicast():
 class FileManager(object):
 	def __init__(self, username):
 		file_manager = self
+		self.username = username
 
 		print('running ' + str(file_manager))
 
@@ -46,8 +47,6 @@ class FileManager(object):
 		multicast_thread.start()
 
 		self.files_map = []
-
-		self.username = username
 
 		# self.init_map()
 
@@ -75,7 +74,9 @@ class FileManager(object):
 			}
 
 			nameserver = self.send_multicast(json.dumps(request))
-			print(nameserver)
+			
+			remotemanager = Pyro4.Proxy('PYRO:{}@{}:8888'.format(user, nameserver))
+			print(remotemanager.hello())
 
 	def list_files(self):
 		request = {
@@ -114,8 +115,8 @@ class FileManager(object):
 		})
 
 	def start_server(self):
-		Pyro4.Daemon.serveSimple({ RemoteFileManager: "remote.filemanager" },
-			ns=True, host=my_address)
+		Pyro4.Daemon.serveSimple({ RemoteFileManager: self.username },
+			ns=True, host=my_address, port=8888)
 
 	def send_multicast(self, message):
 		self.sock.sendto(message.encode(), self.multicast_group)
@@ -173,6 +174,9 @@ class MulticastListener(DatagramProtocol):
 @Pyro4.expose
 @Pyro4.behavior(instance_mode="single")
 class RemoteFileManager(object):
+	def hello(self):
+		return 'hi there'
+
 	def list_files(self):
 		return os.listdir(files_path)
 
