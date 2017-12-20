@@ -67,6 +67,10 @@
 				</div>
 			</div>
 
+			{% if message['fail'] %}
+				<p>{{ message['fail'] }}</p>
+			{% endif %}
+
 			<div class="columns is-multiline">
 				{% for file in files %}
 					<div class="column is-one-third">

@@ -32,10 +32,11 @@ def search():
 			"action": "search",
 			"name": request.form['file_name']
 		}))
-		files = ast.literal_eval(files)
 
 	if files == None:
-		return redirect(url_for('index', message={'fail': 'not found'}))
+		return redirect(url_for('index', message={'fail': 'file {} not found'.format(request.form['file_name'])}))
+
+	#files = ast.literal_eval(files)
 
 	return render_template('/index.html', files=files)
 
@@ -52,7 +53,6 @@ def download():
 @app.route('/share', methods=['POST'])
 def share():
 	file = request.files['file']
-	print(type(file))
 	file.save(os.path.join(node.files_path, '{}(-){}(-){}'.format(username, date.today(), file.filename)))
 	file_manager.update_map(file.filename, username, str(date.today()))
 	return redirect(url_for('index'))
