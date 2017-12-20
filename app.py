@@ -9,9 +9,9 @@ from datetime import date
 
 app = Flask(__name__)
 
-file_manager = node.FileManager()
 
 username = sys.argv[1]
+file_manager = node.FileManager(username)
 
 @app.route('/')
 def index(message=None):

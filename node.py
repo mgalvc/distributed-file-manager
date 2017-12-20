@@ -25,7 +25,7 @@ def run_multicast():
 
 
 class FileManager(object):
-	def __init__(self):
+	def __init__(self, username):
 		file_manager = self
 
 		print('running ' + str(file_manager))
@@ -47,6 +47,8 @@ class FileManager(object):
 
 		self.files_map = []
 
+		self.username = username
+
 		# self.init_map()
 
 	def init_map(self):
@@ -61,8 +63,19 @@ class FileManager(object):
 			})
 
 	def get(self, name, user, date):
-		with open('{}/{}(-){}(-){}'.format(files_path, user, date, name)) as f:
-			return f.read()
+		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
+
+		try: 
+			with open(file_path) as f:
+				return f.read()
+		except FileNotFoundError:
+			request = {
+				'action': 'nameserver',
+				'user': user
+			}
+
+			nameserver = self.send_multicast(json.dumps(request))
+			print(nameserver)
 
 	def list_files(self):
 		request = {
@@ -141,6 +154,9 @@ class FileManager(object):
 
 			if data.get('action') == 'get_files_list':
 				response = self.files_map
+
+			if data.get('action') == 'nameserver' and data.get('user') == self.username:
+				response = my_address
 
 			sock.sendto(json.dumps(response).encode(), address)
 	
