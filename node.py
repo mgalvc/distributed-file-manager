@@ -176,7 +176,6 @@ class FileManager(object):
 				continue
 
 			if data.get('action') == 'search':
-				print(data)
 				response = self.search(data.get('name'))
 
 			if data.get('action') == 'get_files_list':

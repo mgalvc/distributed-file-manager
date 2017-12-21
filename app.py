@@ -27,14 +27,13 @@ def remove():
 def search():
 	files = file_manager.search(request.form['file_name'])
 
-	if len(files) == 0:
+	if not files:
 		files = file_manager.send_multicast(json.dumps({
 			"action": "search",
 			"name": request.form['file_name']
 		}))
 
-	if files == None:
-		return redirect(url_for('index', message={'fail': 'file {} not found'.format(request.form['file_name'])}))
+	print('{}: {}'.format(type(files), files))
 
 	#files = ast.literal_eval(files)
 
