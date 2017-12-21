@@ -16,10 +16,7 @@ file_manager = node.FileManager(username)
 @app.route('/')
 def index(message=None):
 	files = file_manager.list_files()
-
-	search_error = request.args.get('search_error')
-
-	return render_template('/index.html', files=files, search_error=search_error)
+	return render_template('/index.html', files=files)
 
 @app.route('/remove', methods=['GET'])
 def remove():
@@ -38,7 +35,7 @@ def search():
 
 	if isinstance(files, str):
 		files = ast.literal_eval(files)
-	
+
 	return render_template('/index.html', files=files)
 
 @app.route('/download', methods=['GET'])
