@@ -33,10 +33,9 @@ def search():
 			"name": request.form['file_name']
 		}))
 
-	print('{}: {}'.format(type(files), files))
-
-	#files = ast.literal_eval(files)
-
+	if isinstance(files, str):
+		files = ast.literal_eval(files)
+	
 	return render_template('/index.html', files=files)
 
 @app.route('/download', methods=['GET'])

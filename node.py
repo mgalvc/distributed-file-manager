@@ -29,8 +29,6 @@ class FileManager(object):
 		file_manager = self
 		self.username = username
 
-		print('running ' + str(file_manager))
-
 		pyro_thread = threading.Thread(target=self.start_server)
 		pyro_thread.start()
 		
@@ -75,7 +73,6 @@ class FileManager(object):
 
 			nameserver_addr = self.send_multicast(json.dumps(request))
 			nameserver_addr = nameserver_addr.replace("\"", "")
-			print(nameserver_addr)
 			
 			nameserver = Pyro4.locateNS(host=nameserver_addr, port=9090)
 			uri = nameserver.lookup(user)
@@ -86,7 +83,6 @@ class FileManager(object):
 		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)		
 		
 		if user == self.username:
-			print('its mine')
 			os.remove(file_path)
 
 			to_remove = {
@@ -96,12 +92,17 @@ class FileManager(object):
 				'path': files_path
 			}
 
+			request = {
+				'action': 'remove',
+				'to_remove': to_remove
+			}
+
+			self.send_multicast(request)
+
 			self.files_map.remove(to_remove)
 			return 'success'	
 		else:
 			return 'not allowed'
-
-
 
 	def list_files(self):
 		request = {
@@ -115,8 +116,6 @@ class FileManager(object):
 			self.files_map.extend(files)
 			self.clean_files_map()
 
-
-		print(self.files_map)
 		return self.files_map
 
 	def clean_files_map(self):
@@ -149,9 +148,7 @@ class FileManager(object):
 		while True:
 			try:
 				response, server = self.sock.recvfrom(1024)
-				print('{} said {}'.format(server, response))
 			except socket.timeout:
-				print('timed out')
 				break
 			else:
 				return response.decode()
@@ -167,7 +164,6 @@ class FileManager(object):
 		    socket.IP_ADD_MEMBERSHIP,
 		    mreq)
 
-		print('listening...')
 		while True:
 			data, address = sock.recvfrom(1024)
 			data = json.loads(data.decode())
@@ -184,6 +180,9 @@ class FileManager(object):
 			if data.get('action') == 'nameserver' and data.get('user') == self.username:
 				response = my_address
 
+			if data.get('action') == 'remove':
+				self.files_map.remove(data.get('to_remove'))
+
 			sock.sendto(json.dumps(response).encode(), address)
 	
 
@@ -193,7 +192,6 @@ class MulticastListener(DatagramProtocol):
 		self.transport.joinGroup(multicast_group[0])
 
 	def datagramReceiver(self, datagram, address):
-		print(datagram)
 		self.transport.write(b'ack', address)
 
 @Pyro4.expose
