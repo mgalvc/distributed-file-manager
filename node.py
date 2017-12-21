@@ -35,7 +35,7 @@ class FileManager(object):
 		self.multicast_group = ('224.3.29.71', 10000)
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.sock.settimeout(5)
+		self.sock.settimeout(3)
 
 		ttl = struct.pack('b', 3)
 		self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
@@ -46,7 +46,7 @@ class FileManager(object):
 
 		self.files_map = []
 
-		# self.init_map()
+		self.init_map()
 
 	def init_map(self):
 		files = os.listdir(files_path)
