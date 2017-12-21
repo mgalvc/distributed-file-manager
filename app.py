@@ -16,7 +16,10 @@ file_manager = node.FileManager(username)
 @app.route('/')
 def index(message=None):
 	files = file_manager.list_files()
-	return render_template('/index.html', files=files, message=message)
+
+	search_error = request.args.get('search_error')
+
+	return render_template('/index.html', files=files, search_error=search_error)
 
 @app.route('/remove', methods=['GET'])
 def remove():
