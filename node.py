@@ -97,7 +97,7 @@ class FileManager(object):
 				'to_remove': to_remove
 			}
 
-			self.send_multicast(request)
+			self.send_multicast(json.dumps(request))
 
 			self.files_map.remove(to_remove)
 			return 'success'	
