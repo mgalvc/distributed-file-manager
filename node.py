@@ -16,6 +16,8 @@ downloads_path = path + '/downloads'
 
 my_address = '192.168.15.9'
 
+files_map = []
+
 file_manager = None
 multicast_group = ('224.3.29.71', 10000)
 
@@ -46,7 +48,7 @@ class FileManager(object):
 		multicast_thread = threading.Thread(target=self.listen_multicast)
 		multicast_thread.start()
 
-		self.files_map = []
+		# files_map = []
 
 		# self.init_map()
 
@@ -54,7 +56,7 @@ class FileManager(object):
 		files = os.listdir(files_path)
 		for file in files:
 			user, date, filename = file.split('(-)')
-			self.files_map.append({
+			files_map.append({
 				"name": filename,
 				"from": user,
 				"date": date,
@@ -96,7 +98,7 @@ class FileManager(object):
 				'path': files_path
 			}
 
-			self.files_map.remove(to_remove)
+			files_map.remove(to_remove)
 		else:
 			request = {
 				'action': 'nameserver',
@@ -124,27 +126,27 @@ class FileManager(object):
 		
 		if response:
 			files = ast.literal_eval(response)
-			self.files_map.extend(files)
+			files_map.extend(files)
 			self.clean_files_map()
 
 
-		print(self.files_map)
-		return self.files_map
+		print(files_map)
+		return files_map
 
 	def clean_files_map(self):
-		self.files_map = list(map(dict, set(tuple(sorted(d.items())) for d in self.files_map)))
+		files_map = list(map(dict, set(tuple(sorted(d.items())) for d in files_map)))
 
 	def search(self, file_name):
 		response = []
 
-		for file in self.files_map:
+		for file in files_map:
 			if file['name'] == file_name:
 				response.append(file)
 
 		return response
 
 	def update_map(self, file_name, user, date):
-		self.files_map.append({
+		files_map.append({
 			"name": file_name,
 			"from": user,
 			"date": date,
@@ -192,7 +194,7 @@ class FileManager(object):
 				response = self.search(data.get('name'))
 
 			if data.get('action') == 'get_files_list':
-				response = self.files_map
+				response = files_map
 
 			if data.get('action') == 'nameserver' and data.get('user') == self.username:
 				response = my_address
@@ -219,7 +221,16 @@ class RemoteFileManager(object):
 			return f.read()
 
 	def remove(self, name, user, date):
-		file_manager.remove(name, user, date)
-		# file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
-		# os.remove(file_path)		
+		# file_manager.remove(name, user, date)
+		file_path = '{}/{}(-){}(-){}'.format(files_path, user, date, name)
+		os.remove(file_path)		
+
+		to_remove = {
+			'name': name,
+			'from': user,
+			'date': date,
+			'path': files_path
+		}
+
+		files_map.remove(to_remove)
 	
